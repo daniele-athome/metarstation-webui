@@ -502,7 +502,7 @@ const weatherManager = {
                 },
                 dataGrouping: {
                     enabled: true,
-                    groupPixelWidth: 30,
+                    groupPixelWidth: 20,
                 },
                 data: seriesWind,
             }],
