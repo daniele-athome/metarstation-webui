@@ -552,6 +552,7 @@ const weatherManager = {
 
 const webcamManager = {
     localImage: document.querySelector('#local-webcam-image'),
+    localImageLoading: document.querySelector('#local-webcam-loading'),
     fullscreenImage: document.querySelector('#fullscreen-webcam-image'),
     overlay: document.querySelector('#webcam-overlay'),
 
@@ -571,6 +572,12 @@ const webcamManager = {
                 screen.orientation.unlock();
             }
         });
+
+        this.localImage.addEventListener('load', () => {
+           this.localImage.classList.remove('d-none');
+           this.localImageLoading.classList.add('d-none');
+        });
+        this.localImage.src = import.meta.env.VITE_WEATHER_API_URL + '/image';
     },
 };
 
