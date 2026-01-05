@@ -582,7 +582,7 @@ const webcamManager = {
 };
 
 const localDateTime = () => {
-    // TODO we should location timezone instead of the browser one
+    // TODO we should use the location timezone instead of the browser one
     return new Date();
 }
 
