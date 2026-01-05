@@ -265,8 +265,9 @@ const weatherManager = {
                     document.querySelector('#visibility').innerHTML = '10';
                 }
                 else if (data.hasOwnProperty('visib')) {
+                    let visibKm = milesToKilometers(parseInt(data.visib));
                     document.querySelector('#visibility').innerHTML =
-                        milesToKilometers(parseInt(data.visib)).toString();
+                        visibKm < 1 ? '< 1' : visibKm.toString();
                 }
             }
         });
