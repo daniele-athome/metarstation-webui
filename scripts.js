@@ -187,6 +187,8 @@ const weatherManager = {
         75: {day: 'overcast', night: 'overcast'},
         100: {day: 'extreme', night: 'extreme'},
     },
+    // minimal wind speed for the direction to be significant
+    minimalWindSpeed: 5,
 
     // TODO element selectors
 
@@ -301,6 +303,8 @@ const weatherManager = {
                     lineColor: windGradient,
                     value: windSpeed,
                     direction: item['wind_direction'],
+                    symbol: windSpeed > this.minimalWindSpeed ? 'arrowUp' : 'circle',
+                    radius: windSpeed > this.minimalWindSpeed ? 10 : 4,
                 },
             });
         }
@@ -504,8 +508,7 @@ const weatherManager = {
                 marker: {
                     enabled: true,
                     enabledThreshold: 50,
-                    symbol: 'arrowUp',
-                    radius: 10,
+                    // symbol and radius are per-point, inside the series data
                 },
                 dataGrouping: {
                     enabled: true,
