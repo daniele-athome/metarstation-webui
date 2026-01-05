@@ -24,11 +24,14 @@ const milesToKilometers = (miles) => {
     return miles * 1.609344;
 }
 
+const metersPerSecondToKnots = (mps) => {
+    return mps * 1.94384;
+}
+
 // Sonnet 4.5 wrote this :)
 const windGradientColor = (value) => {
     value = Math.max(0, value);
 
-    // TODO this is for kph, but wind speed unit is m/s now
     const stops = [
         { value: 0, color: { r: 0, g: 255, b: 0 } },      // green
         { value: 12, color: { r: 255, g: 255, b: 0 } },   // yellow
@@ -187,8 +190,8 @@ const weatherManager = {
         75: {day: 'overcast', night: 'overcast'},
         100: {day: 'extreme', night: 'extreme'},
     },
-    // minimal wind speed for the direction to be significant
-    minimalWindSpeed: 5,
+    // minimal wind speed (in knots) for the direction to be significant
+    minimalWindSpeed: 2,
 
     // TODO element selectors
 
@@ -227,8 +230,15 @@ const weatherManager = {
             document.querySelector('#humidity').innerHTML = this.roundHumidity(latest['humidity']).toString();
             document.querySelector('#dew-point').innerHTML = this.roundTemperature(latest['dew_point']).toString();
             document.querySelector('#presure').innerHTML = this.roundPressure(latest['pressure']).toString();
-            document.querySelector('#wind-speed').innerHTML = this.roundWindSpeed(latest['wind_speed']).toString();
-            document.querySelector('#wind-direction').innerHTML = latest['wind_direction'];
+
+            let windSpeed = this.roundWindSpeed(metersPerSecondToKnots(latest['wind_speed']));
+            document.querySelector('#wind-speed').innerHTML = windSpeed.toString();
+            if (windSpeed.toFixed(0) >= this.minimalWindSpeed) {
+                document.querySelector('#wind-direction').innerHTML = latest['wind_direction'];
+            }
+            else {
+                document.querySelector('#wind-direction-container').classList.add('d-none');
+            }
 
             const config = {
                 temp: latest['temperature'],
@@ -251,7 +261,7 @@ const weatherManager = {
     requestMetar: function () {
         return $.getJSON(this.metarUrl, (data) => {
             if (data === undefined || data === null) {
-                document.querySelector('#condition-icon').style.display = 'none';
+                document.querySelector('#condition-icon').classList.add('d-none');
             }
             else if (data.hasOwnProperty('cover')) {
                 const cloudCoverage = this.cloudCover[data.cover];
@@ -292,8 +302,10 @@ const weatherManager = {
             seriesHumidity.push([item['timestamp'], this.roundHumidity(item['humidity'])]);
             seriesPressure.push([item['timestamp'], this.roundPressure(item['pressure'])]);
 
-            let windGradient = windGradientColor(item['wind_speed']);
-            let windSpeed = this.roundWindSpeed(item['wind_speed']);
+            let windSpeed = this.roundWindSpeed(metersPerSecondToKnots(item['wind_speed']));
+            let windGradient = windGradientColor(windSpeed);
+            // this doesn't work really well because of dataGrouping
+            let windMinimal = windSpeed.toFixed(0) >= this.minimalWindSpeed;
             seriesWind.push({
                 x: item['timestamp'],
                 y: windSpeed,
@@ -303,8 +315,8 @@ const weatherManager = {
                     lineColor: windGradient,
                     value: windSpeed,
                     direction: item['wind_direction'],
-                    symbol: windSpeed > this.minimalWindSpeed ? 'arrowUp' : 'circle',
-                    radius: windSpeed > this.minimalWindSpeed ? 10 : 4,
+                    symbol: windMinimal ? 'arrowUp' : 'circle',
+                    radius: windMinimal ? 10 : 4,
                 },
             });
         }
@@ -481,7 +493,7 @@ const weatherManager = {
                 },
             },
             title: {
-                text: 'Vento (m/s)',
+                text: 'Vento (nodi)',
             },
             yAxis: {
                 gridLineWidth: 1,
@@ -494,12 +506,12 @@ const weatherManager = {
             },
             tooltip: {
                 enabled: true,
-                valueSuffix: ' m/s',
+                valueSuffix: ' kt',
                 shared: true,
                 valueDecimals: 0,
                 formatter: function() {
                     return '<b>' + Highcharts.dateFormat('%e %b %H:%M', this.x) + '</b><br/>' +
-                        'Velocità: ' + weatherManager.roundWindSpeed(this.y) + ' m/s<br/>' +
+                        'Velocità: ' + weatherManager.roundWindSpeed(metersPerSecondToKnots(this.y)) + ' kt<br/>' +
                         'Direzione: ' + this.point.direction + '°';
                 }
             },
@@ -512,7 +524,7 @@ const weatherManager = {
                 },
                 dataGrouping: {
                     enabled: true,
-                    groupPixelWidth: 20,
+                    groupPixelWidth: 15,
                 },
                 data: seriesWind,
             }],
