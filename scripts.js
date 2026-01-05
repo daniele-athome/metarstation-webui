@@ -249,7 +249,7 @@ const weatherManager = {
                     speed: 'mps'
                 }
             };
-            document.querySelector('#feels-like').innerHTML = new Feels(config).like().toFixed(1);
+            document.querySelector('#feels-like').innerHTML = this.roundTemperature(new Feels(config).like()).toString();
 
             this.createHistoricalCharts(data);
 
@@ -567,7 +567,7 @@ const weatherManager = {
     },
 
     roundWindSpeed: function(windSpeed) {
-        return parseFloat(windSpeed.toFixed(0));
+        return parseFloat(windSpeed.toFixed(1));
     },
 };
 
