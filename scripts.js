@@ -21,7 +21,7 @@ const getWeatherIcon = (name) => {
 }
 
 const milesToKilometers = (miles) => {
-    return Math.round(miles * 1.609344);
+    return miles * 1.609344;
 }
 
 // Sonnet 4.5 wrote this :)
@@ -265,9 +265,9 @@ const weatherManager = {
                     document.querySelector('#visibility').innerHTML = '10';
                 }
                 else if (data.hasOwnProperty('visib')) {
-                    let visibKm = milesToKilometers(parseInt(data.visib));
+                    let visibKm = milesToKilometers(parseFloat(data.visib));
                     document.querySelector('#visibility').innerHTML =
-                        visibKm < 1 ? '< 1' : visibKm.toString();
+                        visibKm < 1 ? '< 1' : Math.round(visibKm);
                 }
             }
         });
