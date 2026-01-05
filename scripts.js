@@ -62,7 +62,10 @@ const windGradientColor = (value) => {
 }
 
 const registerArrowMarker = () => {
-    Highcharts.SVGRenderer.prototype.symbols.arrowUp = function(x, y, w, h) {
+    Highcharts.SVGRenderer.prototype.symbols.arrowUp = function(x, y, w, h, options) {
+        // TODO return another marker (or none) when the speed is too low to be properly detected;
+        //      beware of floating point errors!
+
         // scaling from (viewBox 0 0 640 640)
         const scaleX = w / 640;
         const scaleY = h / 640;
@@ -288,13 +291,15 @@ const weatherManager = {
             seriesPressure.push([item['timestamp'], this.roundPressure(item['pressure'])]);
 
             let windGradient = windGradientColor(item['wind_speed']);
+            let windSpeed = this.roundWindSpeed(item['wind_speed']);
             seriesWind.push({
                 x: item['timestamp'],
-                y: this.roundWindSpeed(item['wind_speed']),
+                y: windSpeed,
                 direction: item['wind_direction'],
                 marker: {
                     fillColor: windGradient,
                     lineColor: windGradient,
+                    value: windSpeed,
                     direction: item['wind_direction'],
                 },
             });
@@ -480,6 +485,7 @@ const weatherManager = {
                 tickInterval: 5,
                 minPadding: 0,
                 maxPadding: 0,
+                min: 0,
                 title: false,
             },
             tooltip: {
@@ -489,7 +495,7 @@ const weatherManager = {
                 valueDecimals: 0,
                 formatter: function() {
                     return '<b>' + Highcharts.dateFormat('%e %b %H:%M', this.x) + '</b><br/>' +
-                        'Velocità: ' + this.y.toFixed(1) + ' m/s<br/>' +
+                        'Velocità: ' + weatherManager.roundWindSpeed(this.y) + ' m/s<br/>' +
                         'Direzione: ' + this.point.direction + '°';
                 }
             },
@@ -541,12 +547,12 @@ const weatherManager = {
         return parseFloat(humidity.toFixed(0));
     },
 
-    roundPressure: function(humidity) {
-        return parseFloat(humidity.toFixed(0));
+    roundPressure: function(pressure) {
+        return parseFloat(pressure.toFixed(0));
     },
 
-    roundWindSpeed: function(humidity) {
-        return parseFloat(humidity.toFixed(0));
+    roundWindSpeed: function(windSpeed) {
+        return parseFloat(windSpeed.toFixed(0));
     },
 };
 
