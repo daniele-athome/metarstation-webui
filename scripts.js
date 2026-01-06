@@ -4,6 +4,7 @@ import * as bootstrap from 'bootstrap'
 import $ from "jquery";
 import * as SunCalc from 'suncalc';
 import Feels from 'feels';
+import chroma from 'chroma-js';
 import * as Highcharts from 'highcharts';
 // noinspection ES6UnusedImports
 import * as HighchartsAdaptive from 'highcharts/themes/adaptive';
@@ -24,51 +25,12 @@ const milesToKilometers = (miles) => {
     return miles * 1.609344;
 }
 
-const metersPerSecondToKnots = (mps) => {
-    return mps * 1.94384;
-}
-
-// Sonnet 4.5 wrote this :)
-const windGradientColor = (value) => {
-    value = Math.max(0, value);
-
-    const stops = [
-        { value: 0, color: { r: 0, g: 255, b: 0 } },      // green
-        { value: 12, color: { r: 255, g: 255, b: 0 } },   // yellow
-        { value: 18, color: { r: 255, g: 165, b: 0 } },   // orange
-        { value: 25, color: { r: 255, g: 0, b: 0 } }      // red
-    ];
-    // last stop
-    if (value >= stops[stops.length - 1].value) {
-        const red = stops[stops.length - 1].color;
-        return `rgb(${red.r}, ${red.g}, ${red.b})`;
-    }
-
-    let lowerStop, upperStop;
-    for (let i = 0; i < stops.length - 1; i++) {
-        if (value >= stops[i].value && value <= stops[i + 1].value) {
-            lowerStop = stops[i];
-            upperStop = stops[i + 1];
-            break;
-        }
-    }
-
-    const range = upperStop.value - lowerStop.value;
-    const valueInRange = value - lowerStop.value;
-    const percentage = valueInRange / range;
-
-    const r = Math.round(lowerStop.color.r + (upperStop.color.r - lowerStop.color.r) * percentage);
-    const g = Math.round(lowerStop.color.g + (upperStop.color.g - lowerStop.color.g) * percentage);
-    const b = Math.round(lowerStop.color.b + (upperStop.color.b - lowerStop.color.b) * percentage);
-
-    return `rgb(${r}, ${g}, ${b})`;
+const metersPerSecondToKilometersPerHour = (mps) => {
+    return mps * 3.6;
 }
 
 const registerArrowMarker = () => {
-    Highcharts.SVGRenderer.prototype.symbols.arrowUp = function(x, y, w, h, options) {
-        // TODO return another marker (or none) when the speed is too low to be properly detected;
-        //      beware of floating point errors!
-
+    Highcharts.SVGRenderer.prototype.symbols.arrowUp = function(x, y, w, h) {
         // scaling from (viewBox 0 0 640 640)
         const scaleX = w / 640;
         const scaleY = h / 640;
@@ -190,8 +152,16 @@ const weatherManager = {
         75: {day: 'overcast', night: 'overcast'},
         100: {day: 'extreme', night: 'extreme'},
     },
-    // minimal wind speed (in knots) for the direction to be significant
-    minimalWindSpeed: 2,
+    windColorScale: chroma.scale([
+        'rgb(0, 255, 0)',
+        'rgb(255, 255, 0)',
+        'rgb(255, 165, 0)',
+        'rgb(255, 0, 0)',
+    ])
+        // values are in km/h
+        .domain([0, 8, 15, 30]),
+    // minimal wind speed (in km/h) for the direction to be significant
+    minimalWindSpeed: 4,
 
     // TODO element selectors
 
@@ -231,7 +201,7 @@ const weatherManager = {
             document.querySelector('#dew-point').innerHTML = this.roundTemperature(latest['dew_point']).toString();
             document.querySelector('#presure').innerHTML = this.roundPressure(latest['pressure']).toString();
 
-            let windSpeed = this.roundWindSpeed(metersPerSecondToKnots(latest['wind_speed']));
+            let windSpeed = this.roundWindSpeed(metersPerSecondToKilometersPerHour(latest['wind_speed']));
             document.querySelector('#wind-speed').innerHTML = windSpeed.toString();
             if (windSpeed.toFixed(0) >= this.minimalWindSpeed) {
                 document.querySelector('#wind-direction').innerHTML = latest['wind_direction'];
@@ -295,15 +265,13 @@ const weatherManager = {
         let seriesPressure = [];
         let seriesWind = [];
         for (let item of data) {
-            // TEST item['wind_speed'] += Math.random() * 30;
-
             seriesTemperature.push([item['timestamp'], this.roundTemperature(item['temperature'])]);
             seriesDewpoint.push([item['timestamp'], this.roundTemperature(item['dew_point'])]);
             seriesHumidity.push([item['timestamp'], this.roundHumidity(item['humidity'])]);
             seriesPressure.push([item['timestamp'], this.roundPressure(item['pressure'])]);
 
-            let windSpeed = this.roundWindSpeed(metersPerSecondToKnots(item['wind_speed']));
-            let windGradient = windGradientColor(windSpeed);
+            let windSpeed = this.roundWindSpeed(metersPerSecondToKilometersPerHour(item['wind_speed']));
+            let windGradient = this.windGradientColor(windSpeed);
             // this doesn't work really well because of dataGrouping
             let windMinimal = windSpeed.toFixed(0) >= this.minimalWindSpeed;
             seriesWind.push({
@@ -491,9 +459,29 @@ const weatherManager = {
                 zooming: {
                     type: 'x'
                 },
+                events: {
+                    render: function() {
+                        this.series[0].points.forEach(function(point) {
+                            if (point.graphic) {
+                                const rotation = point.direction;
+
+                                // this code works only for image markers:
+                                // https://github.com/highcharts/highcharts/issues/12219#issuecomment-543092054
+                                // for a path we need to use the bounding box method
+
+                                const graphic = point.graphic.element;
+                                const bbox = graphic.getBBox();
+                                const centerX = bbox.x + bbox.width / 2;
+                                const centerY = bbox.y + bbox.height / 2;
+
+                                graphic.setAttribute('transform', `rotate(${rotation}, ${centerX}, ${centerY})`);
+                            }
+                        });
+                    },
+                },
             },
             title: {
-                text: 'Vento (nodi)',
+                text: 'Vento (km/h)',
             },
             yAxis: {
                 gridLineWidth: 1,
@@ -506,12 +494,12 @@ const weatherManager = {
             },
             tooltip: {
                 enabled: true,
-                valueSuffix: ' kt',
+                valueSuffix: ' km/h',
                 shared: true,
                 valueDecimals: 0,
                 formatter: function() {
                     return '<b>' + Highcharts.dateFormat('%e %b %H:%M', this.x) + '</b><br/>' +
-                        'Velocità: ' + weatherManager.roundWindSpeed(metersPerSecondToKnots(this.y)) + ' kt<br/>' +
+                        'Velocità: ' + weatherManager.roundWindSpeed(this.y) + ' km/h<br/>' +
                         'Direzione: ' + this.point.direction + '°';
                 }
             },
@@ -528,24 +516,12 @@ const weatherManager = {
                 },
                 data: seriesWind,
             }],
-        }, function(chart) {
-            chart.series[0].points.forEach(function(point) {
-                if (point.graphic) {
-                    const rotation = point.direction;
-
-                    // this code works only for image markers:
-                    // https://github.com/highcharts/highcharts/issues/12219#issuecomment-543092054
-                    // for a path we need to use the bounding box method
-
-                    const graphic = point.graphic.element;
-                    const bbox = graphic.getBBox();
-                    const centerX = bbox.x + bbox.width / 2;
-                    const centerY = bbox.y + bbox.height / 2;
-
-                    graphic.setAttribute('transform', `rotate(${rotation}, ${centerX}, ${centerY})`);
-                }
-            });
         });
+    },
+
+    windGradientColor: function(value) {
+        value = Math.max(0, value);
+        return this.windColorScale(value).hex();
     },
 
     updateCondition: function () {
@@ -567,7 +543,7 @@ const weatherManager = {
     },
 
     roundWindSpeed: function(windSpeed) {
-        return parseFloat(windSpeed.toFixed(1));
+        return parseFloat(windSpeed.toFixed(0));
     },
 };
 
