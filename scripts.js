@@ -203,7 +203,7 @@ const weatherManager = {
 
             let windSpeed = this.roundWindSpeed(metersPerSecondToKilometersPerHour(latest['wind_speed']));
             document.querySelector('#wind-speed').innerHTML = windSpeed.toString();
-            if (windSpeed.toFixed(0) >= this.minimalWindSpeed) {
+            if (windSpeed >= this.minimalWindSpeed) {
                 document.querySelector('#wind-direction').innerHTML = latest['wind_direction'];
             }
             else {
@@ -272,8 +272,7 @@ const weatherManager = {
 
             let windSpeed = this.roundWindSpeed(metersPerSecondToKilometersPerHour(item['wind_speed']));
             let windGradient = this.windGradientColor(windSpeed);
-            // this doesn't work really well because of dataGrouping
-            let windMinimal = windSpeed.toFixed(0) >= this.minimalWindSpeed;
+            let windMinimal = windSpeed >= this.minimalWindSpeed;
             seriesWind.push({
                 x: item['timestamp'],
                 y: windSpeed,
@@ -499,9 +498,10 @@ const weatherManager = {
                 shared: true,
                 valueDecimals: 0,
                 formatter: function() {
+                    let windMinimal = this.y >= weatherManager.minimalWindSpeed;
                     return '<b>' + Highcharts.dateFormat('%e %b %H:%M', this.x) + '</b><br/>' +
                         'Velocità: ' + weatherManager.roundWindSpeed(this.y) + ' km/h<br/>' +
-                        'Direzione: ' + this.point.direction + '°';
+                        'Direzione: ' + (windMinimal ? this.point.direction : '--') + '°';
                 }
             },
             series: [{
