@@ -490,6 +490,7 @@ const weatherManager = {
                 minPadding: 0,
                 maxPadding: 0,
                 min: 0,
+                softMax: 40,
                 title: false,
             },
             tooltip: {
