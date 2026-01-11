@@ -29,6 +29,10 @@ const metersPerSecondToKilometersPerHour = (mps) => {
     return mps * 3.6;
 }
 
+const oppositeDirection = (direction) => {
+    return direction > 180 ? direction - 180 : direction + 180;
+}
+
 const registerArrowMarker = () => {
     Highcharts.SVGRenderer.prototype.symbols.arrowUp = function(x, y, w, h) {
         // scaling from (viewBox 0 0 640 640)
@@ -280,8 +284,7 @@ const weatherManager = {
                 marker: {
                     fillColor: windGradient,
                     lineColor: windGradient,
-                    value: windSpeed,
-                    direction: item['wind_direction'],
+                    direction: oppositeDirection(item['wind_direction']),
                     symbol: windMinimal ? 'arrowUp' : 'circle',
                     radius: windMinimal ? 10 : 4,
                 },
@@ -462,7 +465,7 @@ const weatherManager = {
                     render: function() {
                         this.series[0].points.forEach(function(point) {
                             if (point.graphic) {
-                                const rotation = point.direction;
+                                const rotation = point.marker.direction;
 
                                 // this code works only for image markers:
                                 // https://github.com/highcharts/highcharts/issues/12219#issuecomment-543092054
@@ -498,6 +501,7 @@ const weatherManager = {
                 shared: true,
                 valueDecimals: 0,
                 formatter: function() {
+                    // TODO data grouping support
                     let windMinimal = this.y >= weatherManager.minimalWindSpeed;
                     return '<b>' + Highcharts.dateFormat('%e %b %H:%M', this.x) + '</b><br/>' +
                         'Velocità: ' + weatherManager.roundWindSpeed(this.y) + ' km/h<br/>' +
@@ -513,7 +517,9 @@ const weatherManager = {
                 },
                 dataGrouping: {
                     enabled: true,
+                    groupAll: true,
                     groupPixelWidth: 15,
+                    approximation: 'high',
                 },
                 data: seriesWind,
             }],
