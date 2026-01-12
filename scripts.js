@@ -594,6 +594,12 @@ const localDateTime = () => {
     return new Date();
 }
 
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register(
+        import.meta.env.MODE === 'production' ? '/service-worker.js' : '/dev-sw.js?dev-sw'
+    )
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     themeManager.initialize();
     themeManager.loaded();
