@@ -16,6 +16,8 @@ export default defineConfig(({ mode }) => {
         },
         plugins: [
             VitePWA({
+                filename: 'service-worker.js',
+                injectRegister: false,
                 manifest: {
                     "name": env.VITE_LOCATION_SHORT_TITLE,
                     "short_name": "Meteo",

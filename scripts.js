@@ -594,10 +594,8 @@ const localDateTime = () => {
     return new Date();
 }
 
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register(
-        import.meta.env.MODE === 'production' ? '/service-worker.js' : '/dev-sw.js?dev-sw'
-    )
+if ('serviceWorker' in navigator && import.meta.env.MODE === 'production') {
+    navigator.serviceWorker.register('./service-worker.js');
 }
 
 document.addEventListener("DOMContentLoaded", () => {
