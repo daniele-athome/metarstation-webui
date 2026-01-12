@@ -86,6 +86,10 @@ const themeManager = {
             this.toggleTheme();
         }
     },
+
+    loaded: function() {
+        this.body.classList.remove('loading');
+    }
 };
 
 const sunTimesManager = {
@@ -591,9 +595,10 @@ const localDateTime = () => {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    registerArrowMarker();
-
     themeManager.initialize();
+    themeManager.loaded();
+
+    registerArrowMarker();
     sunTimesManager.initialize();
     weatherManager.initialize();
     webcamManager.initialize();
