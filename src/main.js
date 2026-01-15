@@ -1,8 +1,9 @@
-import './styles.scss';
+import '../styles.scss';
+
+import sunTimesManager from './suntimes.js';
 
 import * as bootstrap from 'bootstrap'
 import $ from "jquery";
-import * as SunCalc from 'suncalc';
 import Feels from 'feels';
 import chroma from 'chroma-js';
 import * as Highcharts from 'highcharts';
@@ -13,12 +14,9 @@ import * as HighchartsBrokenAxis from 'highcharts/modules/broken-axis';
 // noinspection ES6UnusedImports
 import * as HighchartsStock from 'highcharts/modules/stock';
 
-import dayLandscapeImage from './images/day-landscape.png';
-import nightLandscapeImage from './images/night-landscape.png';
-
-const weatherIcons = import.meta.glob('./images/weather-icons/*.svg', { eager: true });
+const weatherIcons = import.meta.glob('../images/weather-icons/*.svg', { eager: true });
 const getWeatherIcon = (name) => {
-    return weatherIcons[`./images/weather-icons/${name}.svg`]?.default;
+    return weatherIcons[`../images/weather-icons/${name}.svg`]?.default;
 }
 
 const milesToKilometers = (miles) => {
@@ -89,56 +87,6 @@ const themeManager = {
 
     loaded: function() {
         this.body.classList.remove('loading');
-    }
-};
-
-const sunTimesManager = {
-    timeFormatOptions: {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-    },
-    localDate: null,
-    sunriseTime: null,
-    sunsetTime: null,
-
-    sunriseTimeText: document.querySelector('#sunrise-time'),
-    sunsetTimeText: document.querySelector('#sunset-time'),
-    sceneryImage: document.querySelector('#scenery'),
-
-    initialize: function () {
-        this.localDate = localDateTime();
-        let sunTimes = SunCalc.getTimes(this.localDate,
-            import.meta.env.VITE_LOCATION_LATITUDE,
-            import.meta.env.VITE_LOCATION_LONGITUDE,
-            import.meta.env.VITE_LOCATION_HEIGHT);
-        this.sunriseTime = sunTimes.sunrise;
-        this.sunsetTime = sunTimes.sunset;
-
-        this.sunriseTimeText.innerHTML =
-            this.sunriseTime.toLocaleTimeString([], this.timeFormatOptions);
-        this.sunsetTimeText.innerHTML =
-            this.sunsetTime.toLocaleTimeString([], this.timeFormatOptions);
-
-        this.changeSceneryImage();
-    },
-
-    changeSceneryImage: function () {
-        if (this.isNight()) {
-            this.sceneryImage.src = nightLandscapeImage;
-            this.sceneryImage.alt = 'Night landscape';
-        } else {
-            this.sceneryImage.src = dayLandscapeImage;
-            this.sceneryImage.alt = 'Day landscape';
-        }
-    },
-
-    isNight: function () {
-        const sunriseHour = this.sunriseTime.getHours();
-        const sunsetHour = this.sunsetTime.getHours();
-
-        return this.localDate.getHours() < sunriseHour ||
-            this.localDate.getHours() >= sunsetHour;
     }
 };
 
@@ -588,11 +536,6 @@ const webcamManager = {
         this.localImage.src = import.meta.env.VITE_WEATHER_API_URL + '/image';
     },
 };
-
-const localDateTime = () => {
-    // TODO we should use the location timezone instead of the browser one
-    return new Date();
-}
 
 document.addEventListener("DOMContentLoaded", () => {
     themeManager.initialize();
