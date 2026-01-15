@@ -192,7 +192,14 @@ const weatherManager = {
 
     requestMetar: function () {
         return fetch(this.metarUrl)
-            .then(response => response.json())
+            .then(response => {
+                if (response.status === 204) {
+                    return null;
+                }
+                else {
+                    return response.json();
+                }
+            })
             .then(data => {
                 if (data === undefined || data === null) {
                     document.querySelector('#condition-icon').classList.add('d-none');
