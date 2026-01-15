@@ -182,7 +182,7 @@ const weatherManager = {
             console.log(weatherArgs);
             console.log(metarArgs);
 
-            this.updateCondition();
+            this.updateCondition(weatherArgs[0], metarArgs);
         });
     },
 
@@ -535,7 +535,7 @@ const weatherManager = {
         return this.windColorScale(value).hex();
     },
 
-    updateCondition: function () {
+    updateCondition: function (weather, metar) {
         // TODO infer a flight condition from weather and metar data
         document.querySelector('#condition-msg').innerHTML =
             '<i class="fa-solid fa-circle-check"></i> Condizioni ideali';
