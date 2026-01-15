@@ -6,7 +6,6 @@ import sunTimesManager from './suntimes.js';
 import webcamManager from './webcam.js';
 
 import * as bootstrap from 'bootstrap'
-import $ from "jquery";
 import Feels from 'feels';
 import chroma from 'chroma-js';
 import * as Highcharts from 'highcharts';
@@ -125,96 +124,103 @@ const weatherManager = {
     // TODO element selectors
 
     initialize: function () {
-        $.when(
+        Promise.all([
             this.requestWeather(),
             this.requestMetar(),
-        ).done((weatherArgs, metarArgs) => {
+        ]).then(([weatherArgs, metarArgs]) => {
             console.log('Both weather and metar are available');
             console.log(weatherArgs);
             console.log(metarArgs);
 
-            this.updateCondition(weatherArgs[0], metarArgs);
+            this.updateCondition(weatherArgs, metarArgs);
         });
     },
 
     requestWeather: function () {
-        return $.getJSON(this.weatherUrl, (data) => {
-            // item are in reversed temporal order, so the first one is the more recent
-            let latest = data[0];
-            let timestamp = new Date(latest['timestamp']);
+        return fetch(this.weatherUrl)
+            .then(response => response.json())
+            .then(data => {
+                // item are in reversed temporal order, so the first one is the more recent
+                let latest = data[0];
+                let timestamp = new Date(latest['timestamp']);
 
-            document.querySelector('#today').innerHTML = timestamp.toLocaleDateString([], {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                },
-            ) + ', ' + timestamp.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                second: '2-digit',
-                timeZoneName: 'longOffset',
-            });
-            document.querySelector('#temp-now').innerHTML = this.roundTemperature(latest['temperature']).toString();
-            document.querySelector('#humidity').innerHTML = this.roundHumidity(latest['humidity']).toString();
-            document.querySelector('#dew-point').innerHTML = this.roundTemperature(latest['dew_point']).toString();
-            document.querySelector('#presure').innerHTML = this.roundPressure(latest['pressure']).toString();
+                document.querySelector('#today').innerHTML = timestamp.toLocaleDateString([], {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
+                    },
+                ) + ', ' + timestamp.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                    second: '2-digit',
+                    timeZoneName: 'longOffset',
+                });
+                document.querySelector('#temp-now').innerHTML = this.roundTemperature(latest['temperature']).toString();
+                document.querySelector('#humidity').innerHTML = this.roundHumidity(latest['humidity']).toString();
+                document.querySelector('#dew-point').innerHTML = this.roundTemperature(latest['dew_point']).toString();
+                document.querySelector('#presure').innerHTML = this.roundPressure(latest['pressure']).toString();
 
-            let windSpeed = this.roundWindSpeed(metersPerSecondToKilometersPerHour(latest['wind_speed']));
-            document.querySelector('#wind-speed').innerHTML = windSpeed.toString();
-            if (windSpeed >= this.minimalWindSpeed) {
-                document.querySelector('#wind-direction').innerHTML = latest['wind_direction'];
-            }
-            else {
-                document.querySelector('#wind-direction-container').classList.add('d-none');
-            }
-
-            const config = {
-                temp: latest['temperature'],
-                humidity: latest['humidity'],
-                speed: latest['wind_speed'],
-                units: {
-                    temp: 'c',
-                    speed: 'mps'
+                let windSpeed = this.roundWindSpeed(metersPerSecondToKilometersPerHour(latest['wind_speed']));
+                document.querySelector('#wind-speed').innerHTML = windSpeed.toString();
+                if (windSpeed >= this.minimalWindSpeed) {
+                    document.querySelector('#wind-direction').innerHTML = latest['wind_direction'];
                 }
-            };
-            document.querySelector('#feels-like').innerHTML = this.roundTemperature(new Feels(config).like()).toString();
+                else {
+                    document.querySelector('#wind-direction-container').classList.add('d-none');
+                }
 
-            this.createHistoricalCharts(data);
+                const config = {
+                    temp: latest['temperature'],
+                    humidity: latest['humidity'],
+                    speed: latest['wind_speed'],
+                    units: {
+                        temp: 'c',
+                        speed: 'mps'
+                    }
+                };
+                document.querySelector('#feels-like').innerHTML = this.roundTemperature(new Feels(config).like()).toString();
 
-            // TODO dummy stuff
-            document.querySelector('#description-temp').innerHTML = 'Sereno';
-        });
+                this.createHistoricalCharts(data);
+
+                // TODO dummy stuff
+                document.querySelector('#description-temp').innerHTML = 'Sereno';
+
+                return latest;
+            });
     },
 
     requestMetar: function () {
-        return $.getJSON(this.metarUrl, (data) => {
-            if (data === undefined || data === null) {
-                document.querySelector('#condition-icon').classList.add('d-none');
-            }
-            else if (data.hasOwnProperty('cover')) {
-                const cloudCoverage = this.cloudCover[data.cover];
-                if (cloudCoverage !== undefined) {
-                    document.querySelector('#clouds').innerHTML = cloudCoverage.toString();
+        return fetch(this.metarUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data === undefined || data === null) {
+                    document.querySelector('#condition-icon').classList.add('d-none');
                 }
+                else if (data.hasOwnProperty('cover')) {
+                    const cloudCoverage = this.cloudCover[data.cover];
+                    if (cloudCoverage !== undefined) {
+                        document.querySelector('#clouds').innerHTML = cloudCoverage.toString();
+                    }
 
-                const cloudIcon = this.cloudCoverageIcon[cloudCoverage];
-                if (cloudIcon !== undefined) {
-                    const realCloudIcon = sunTimesManager.isNight() ? cloudIcon.night : cloudIcon.day;
-                    document.querySelector('#condition-icon').src = getWeatherIcon(realCloudIcon);
-                }
+                    const cloudIcon = this.cloudCoverageIcon[cloudCoverage];
+                    if (cloudIcon !== undefined) {
+                        const realCloudIcon = sunTimesManager.isNight() ? cloudIcon.night : cloudIcon.day;
+                        document.querySelector('#condition-icon').src = getWeatherIcon(realCloudIcon);
+                    }
 
-                if (data.cover === 'CAVOK') {
-                    // special condition that includes visibility of 10+ km
-                    document.querySelector('#visibility').innerHTML = '10';
+                    if (data.cover === 'CAVOK') {
+                        // special condition that includes visibility of 10+ km
+                        document.querySelector('#visibility').innerHTML = '10';
+                    }
+                    else if (data.hasOwnProperty('visib')) {
+                        let visibKm = milesToKilometers(parseFloat(data.visib));
+                        document.querySelector('#visibility').innerHTML =
+                            visibKm < 1 ? '< 1' : Math.round(visibKm);
+                    }
                 }
-                else if (data.hasOwnProperty('visib')) {
-                    let visibKm = milesToKilometers(parseFloat(data.visib));
-                    document.querySelector('#visibility').innerHTML =
-                        visibKm < 1 ? '< 1' : Math.round(visibKm);
-                }
-            }
-        });
+                return data;
+            });
     },
 
     createHistoricalCharts: function(data) {
