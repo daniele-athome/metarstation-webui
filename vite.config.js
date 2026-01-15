@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
             alias: {
                 '~bootstrap': resolve(__dirname, 'node_modules/bootstrap'),
                 '~fontawesome': resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free'),
+                '~fonts': resolve(__dirname, 'fonts'),
             }
         },
         plugins: [
