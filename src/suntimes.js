@@ -5,7 +5,6 @@ import * as SunCalc from 'suncalc';
 import dayLandscapeImage from '../images/day-landscape.png';
 import nightLandscapeImage from '../images/night-landscape.png';
 
-
 // TODO move to utils module
 const localDateTime = () => {
     // TODO we should use the location timezone instead of the browser one
