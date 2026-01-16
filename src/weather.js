@@ -268,6 +268,9 @@ export default {
             time: {
                 timezone: import.meta.env.VITE_LOCATION_TIMEZONE,
             },
+            accessibility: {
+                enabled: false,
+            },
             legend: {
                 enabled: false,
             },
