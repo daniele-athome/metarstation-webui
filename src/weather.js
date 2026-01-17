@@ -277,6 +277,9 @@ export default {
                 zooming: {
                     type: 'x'
                 },
+                style: {
+                    fontFamily: 'B612',
+                },
             },
             time: {
                 timezone: import.meta.env.VITE_LOCATION_TIMEZONE,
@@ -445,6 +448,9 @@ export default {
                 height: 250,
                 zooming: {
                     type: 'x'
+                },
+                style: {
+                    fontFamily: 'B612',
                 },
                 events: {
                     render: function() {
