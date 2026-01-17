@@ -46,7 +46,7 @@ const roundWindSpeed = (windSpeed) => {
 }
 
 const roundPrecipitation = (precipitation) => {
-    return parseFloat(precipitation.toFixed(0));
+    return parseFloat(precipitation.toFixed(1));
 }
 
 const windColorScale = chroma.scale([
