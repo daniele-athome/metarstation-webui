@@ -45,6 +45,10 @@ const roundWindSpeed = (windSpeed) => {
     return parseFloat(windSpeed.toFixed(0));
 }
 
+const roundPrecipitation = (precipitation) => {
+    return parseFloat(precipitation.toFixed(0));
+}
+
 const windColorScale = chroma.scale([
     'rgb(0, 255, 0)',
     'rgb(255, 255, 0)',
@@ -56,10 +60,10 @@ const windColorScale = chroma.scale([
 
 const cloudCover = {
     'CAVOK': 0,
-        'FEW': 20,
-        'SCT': 40,
-        'BKN': 75,
-        'OVC': 100
+    'FEW': 20,
+    'SCT': 40,
+    'BKN': 75,
+    'OVC': 100
 };
 
 // to be used if it's not raining
@@ -69,6 +73,15 @@ const cloudCoverageIcon = {
     40: {day: 'overcast-day', night: 'overcast-night'},
     75: {day: 'overcast', night: 'overcast'},
     100: {day: 'extreme', night: 'extreme'},
+};
+
+// to be used if it's not raining
+const cloudCoverageText = {
+    0: 'Sereno',
+    20: 'Parzialmente nuvoloso',
+    40: 'Parzialmente nuvoloso',
+    75: 'Nuvoloso',
+    100: 'Coperto',
 };
 
 // minimal wind speed (in km/h) for the direction to be significant
@@ -504,8 +517,62 @@ export default {
     },
 
     updateCondition: function (weather, metar) {
+        const temperature = roundTemperature(weather['temperature']);
+        const dewpoint = roundTemperature(weather['dew_point']);
+        const precipitation = roundPrecipitation(weather['precipitation']);
+
         // TODO infer a weather condition from weather and metar data
-        document.querySelector('#description-temp').innerHTML = 'Sereno';
+        let descriptionStr = '';
+        let descriptionIcon;
+
+        if (Math.abs(temperature - dewpoint) < 3) {
+            // possible fog
+            let fog = false;
+            if (metar && metar.hasOwnProperty('visib')) {
+                let visibKm = milesToKilometers(parseFloat(metar.visib));
+                if (visibKm < 2) {
+                    // certain fog
+                    fog = true;
+                }
+            }
+
+            if (fog) {
+                descriptionStr = 'Nebbia';
+            }
+            else {
+                descriptionStr = 'Probabile nebbia';
+            }
+
+            const fogIcon = sunTimesManager.isNight() ? 'fog-night' : 'fog-day';
+            descriptionIcon = getWeatherIcon(fogIcon);
+        }
+        else if (precipitation > 0) {
+            // TODO adjective based on intensity; "storm" if strong winds?
+        }
+        else {
+            // no fog and no rain, use cloud cover from METAR if available
+            if (metar && metar.hasOwnProperty('cover')) {
+                const cloudCoverage = cloudCover[metar.cover];
+                const cloudIcon = cloudCoverageIcon[cloudCoverage];
+                if (cloudIcon !== undefined) {
+                    const realCloudIcon = sunTimesManager.isNight() ? cloudIcon.night : cloudIcon.day;
+                    descriptionIcon = getWeatherIcon(realCloudIcon);
+                }
+
+                descriptionStr = cloudCoverageText[cloudCoverage];
+            }
+
+        }
+
+        document.querySelector('#description-temp').innerHTML = descriptionStr;
+
+        if (descriptionIcon) {
+            document.querySelector('#condition-icon').src = descriptionIcon;
+        }
+        else {
+            document.querySelector('#condition-icon').classList.add('d-none');
+        }
+
         // TODO infer a flight condition from weather and metar data
         document.querySelector('#condition-msg').innerHTML =
             '<i class="fa-solid fa-circle-check"></i> Condizioni ideali';
@@ -515,4 +582,5 @@ export default {
     roundHumidity,
     roundPressure,
     roundWindSpeed,
+    roundPrecipitation,
 };
