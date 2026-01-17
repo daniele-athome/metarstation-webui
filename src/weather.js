@@ -211,12 +211,6 @@ export default {
                         document.querySelector('#clouds').innerHTML = cloudCoverage.toString();
                     }
 
-                    const cloudIcon = cloudCoverageIcon[cloudCoverage];
-                    if (cloudIcon !== undefined) {
-                        const realCloudIcon = sunTimesManager.isNight() ? cloudIcon.night : cloudIcon.day;
-                        document.querySelector('#condition-icon').src = getWeatherIcon(realCloudIcon);
-                    }
-
                     if (data.cover === 'CAVOK') {
                         // special condition that includes visibility of 10+ km
                         document.querySelector('#visibility').innerHTML = '10';
@@ -527,8 +521,7 @@ export default {
         const dewpoint = roundTemperature(weather['dew_point']);
         const precipitation = roundPrecipitation(weather['precipitation']);
 
-        // TODO infer a weather condition from weather and metar data
-        let descriptionStr = '';
+        let descriptionText = '';
         let descriptionIcon;
 
         if (Math.abs(temperature - dewpoint) < 3) {
@@ -542,18 +535,35 @@ export default {
                 }
             }
 
+            let fogIcon;
             if (fog) {
-                descriptionStr = 'Nebbia';
+                descriptionText = 'Nebbia';
+                fogIcon = 'mist';
             }
             else {
-                descriptionStr = 'Probabile nebbia';
+                descriptionText = 'Probabile nebbia';
+                fogIcon = sunTimesManager.isNight() ? 'fog-night' : 'fog-day';
             }
 
-            const fogIcon = sunTimesManager.isNight() ? 'fog-night' : 'fog-day';
-            descriptionIcon = getWeatherIcon(fogIcon);
+            descriptionIcon = fogIcon;
         }
         else if (precipitation > 0) {
-            // TODO adjective based on intensity; "storm" if strong winds?
+            if (precipitation < 0.5) {
+                descriptionText = 'Pioggia debole';
+                descriptionIcon = 'drizzle';
+            }
+            else if (precipitation >= 0.5 && precipitation <= 4) {
+                descriptionText = 'Pioggia moderata';
+                descriptionIcon = 'rain';
+            }
+            else if (precipitation > 4 && precipitation <= 10) {
+                descriptionText = 'Pioggia forte';
+                descriptionIcon = 'overcast-rain';
+            }
+            else if (precipitation > 10) {
+                descriptionText = 'Rovescio';
+                descriptionIcon = 'extreme-rain';
+            }
         }
         else {
             // no fog and no rain, use cloud cover from METAR if available
@@ -561,19 +571,18 @@ export default {
                 const cloudCoverage = cloudCover[metar.cover];
                 const cloudIcon = cloudCoverageIcon[cloudCoverage];
                 if (cloudIcon !== undefined) {
-                    const realCloudIcon = sunTimesManager.isNight() ? cloudIcon.night : cloudIcon.day;
-                    descriptionIcon = getWeatherIcon(realCloudIcon);
+                    descriptionIcon = sunTimesManager.isNight() ? cloudIcon.night : cloudIcon.day;
                 }
 
-                descriptionStr = cloudCoverageText[cloudCoverage];
+                descriptionText = cloudCoverageText[cloudCoverage];
             }
 
         }
 
-        document.querySelector('#description-temp').innerHTML = descriptionStr;
+        document.querySelector('#description-temp').innerHTML = descriptionText;
 
         if (descriptionIcon) {
-            document.querySelector('#condition-icon').src = descriptionIcon;
+            document.querySelector('#condition-icon').src = getWeatherIcon(descriptionIcon);
         }
         else {
             document.querySelector('#condition-icon').classList.add('d-none');
