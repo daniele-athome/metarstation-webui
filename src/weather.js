@@ -49,6 +49,36 @@ const roundPrecipitation = (precipitation) => {
     return parseFloat(precipitation.toFixed(1));
 }
 
+const isLowVisibility = (metar) => {
+    if (metar && metar.hasOwnProperty('visib')) {
+        let visibKm = milesToKilometers(parseFloat(metar.visib));
+        return visibKm < 5;
+    }
+    return false;
+}
+
+const isStrongWind = (weather) => {
+    if (weather && weather['wind_speed']) {
+        let windSpeed = roundWindSpeed(metersPerSecondToKilometersPerHour(weather['wind_speed']));
+        return windSpeed > 20;
+    }
+    return false;
+}
+
+const isRain = (weather) => {
+    if (weather && weather['precipitation']) {
+        let precipitation = roundPrecipitation(weather['precipitation']);
+        return precipitation > 0;
+    }
+    return false;
+}
+
+const isPossibleFog = (weather) => {
+    const temperature = roundTemperature(weather['temperature']);
+    const dewpoint = roundTemperature(weather['dew_point']);
+    return Math.abs(temperature - dewpoint) < 3;
+}
+
 const windColorScale = chroma.scale([
     'rgb(0, 255, 0)',
     'rgb(255, 255, 0)',
@@ -517,14 +547,14 @@ export default {
     },
 
     updateCondition: function (weather, metar) {
-        const temperature = roundTemperature(weather['temperature']);
-        const dewpoint = roundTemperature(weather['dew_point']);
+        // -- weather condition --
+
         const precipitation = roundPrecipitation(weather['precipitation']);
 
         let descriptionText = '';
         let descriptionIcon;
 
-        if (Math.abs(temperature - dewpoint) < 3) {
+        if (isPossibleFog(weather)) {
             // possible fog
             let fog = false;
             if (metar && metar.hasOwnProperty('visib')) {
@@ -548,6 +578,8 @@ export default {
             descriptionIcon = fogIcon;
         }
         else if (precipitation > 0) {
+            // almost totally random precipitation intensity values :)
+
             if (precipitation < 0.5) {
                 descriptionText = 'Pioggia debole';
                 descriptionIcon = 'drizzle';
@@ -588,9 +620,33 @@ export default {
             document.querySelector('#condition-icon').classList.add('d-none');
         }
 
-        // TODO infer a flight condition from weather and metar data
-        document.querySelector('#condition-msg').innerHTML =
-            '<i class="fa-solid fa-circle-check"></i> Condizioni ideali';
+        // -- flight condition --
+
+        let conditionText;
+        let conditionIcon;
+
+        if (isLowVisibility(metar) || isPossibleFog(weather)) {
+            conditionText = 'Scarsa visibilità';
+            conditionIcon = 'fa-solid fa-eye-low-vision';
+        }
+        else if (isStrongWind(weather)) {
+            conditionText = 'Vento forte';
+            conditionIcon = 'fa-solid fa-wind';
+        }
+        else if (isRain(weather)) {
+            conditionText = 'Pioggia';
+            conditionIcon = 'fa-solid fa-cloud-rain';
+        }
+        else {
+            conditionText = 'Buone condizioni';
+            conditionIcon = 'fa-solid fa-circle-check';
+        }
+
+        if (conditionText && conditionIcon) {
+            // '<i class="fa-solid fa-circle-check"></i> Condizioni ideali'
+            document.querySelector('#condition-msg').innerHTML =
+                `<i class="${conditionIcon}"></i> ${conditionText}`;
+        }
     },
 
     roundTemperature,
