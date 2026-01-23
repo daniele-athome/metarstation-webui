@@ -8,16 +8,16 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@popperjs/core": "^2.11.8",
-    "bootstrap": "^5.3.7",
+    "bootstrap": "^5.3.8",
     "chroma-js": "^3.2.0",
     "feels": "^3.0.0",
-    "highcharts": "^12.4.0",
+    "highcharts": "^12.5.0",
     "suncalc": "^1.9.0"
   },
   "type": "module",
   "devDependencies": {
-    "sass": "^1.90.0",
-    "vite": "^7.1.11",
+    "sass": "^1.97.3",
+    "vite": "^7.3.1",
     "vite-plugin-pwa": "^1.2.0"
   }
 }
