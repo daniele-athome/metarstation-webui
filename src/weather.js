@@ -615,6 +615,7 @@ export default {
 
         if (descriptionIcon) {
             document.querySelector('#condition-icon').src = getWeatherIcon(descriptionIcon);
+            document.querySelector('#condition-icon').title = descriptionText;
         }
         else {
             document.querySelector('#condition-icon').classList.add('d-none');
