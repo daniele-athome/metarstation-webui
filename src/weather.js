@@ -549,7 +549,7 @@ export default {
     updateCondition: function (weather, metar) {
         // -- weather condition --
 
-        const precipitation = roundPrecipitation(weather['precipitation']);
+        const precipitation = isRain(weather) ? roundPrecipitation(weather['precipitation']) : 0;
 
         let descriptionText = '';
         let descriptionIcon;
@@ -633,8 +633,8 @@ export default {
             conditionText = 'Vento forte';
             conditionIcon = 'fa-solid fa-wind';
         }
-        else if (isRain(weather)) {
-            conditionText = 'Pioggia';
+        else if (precipitation > 0) {
+            conditionText = `Pioggia (${precipitation} mm/h)`;
             conditionIcon = 'fa-solid fa-cloud-rain';
         }
         else {
