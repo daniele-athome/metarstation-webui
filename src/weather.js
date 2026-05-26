@@ -192,7 +192,7 @@ export default {
                 document.querySelector('#temp-now').innerHTML = roundTemperature(latest['temperature']).toString();
                 document.querySelector('#humidity').innerHTML = roundHumidity(latest['humidity']).toString();
                 document.querySelector('#dew-point').innerHTML = roundTemperature(latest['dew_point']).toString();
-                document.querySelector('#presure').innerHTML = roundPressure(latest['pressure']).toString();
+                document.querySelector('#pressure').innerHTML = roundPressure(latest['pressure']).toString();
 
                 let windSpeed = roundWindSpeed(metersPerSecondToKilometersPerHour(latest['wind_speed']));
                 document.querySelector('#wind-speed').innerHTML = windSpeed.toString();
