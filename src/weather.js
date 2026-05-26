@@ -76,7 +76,8 @@ const isRain = (weather) => {
 const isPossibleFog = (weather) => {
     const temperature = roundTemperature(weather['temperature']);
     const dewpoint = roundTemperature(weather['dew_point']);
-    return Math.abs(temperature - dewpoint) < 3;
+    const humidity = roundHumidity(weather['humidity']);
+    return Math.abs(temperature - dewpoint) < 2 && humidity > 90;
 }
 
 const windColorScale = chroma.scale([
