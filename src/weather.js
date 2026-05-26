@@ -49,6 +49,35 @@ const roundPrecipitation = (precipitation) => {
     return parseFloat(precipitation.toFixed(1));
 }
 
+const computePrecipitation = (weather_list) => {
+    if (weather_list.length >= 2) {
+        const latest = weather_list[0];
+        const latest_timestamp = new Date(latest['timestamp']);
+        console.log(latest_timestamp);
+
+        // we want something between 1h and 1h15m ago
+        const older_window_start = latest_timestamp - 60 * 60 * 1000;
+        const older_window_end = latest_timestamp - 75 * 60 * 1000;
+
+        for (let older of weather_list.slice(1)) {
+            if (!older['precipitation']) {
+                // bad item
+                continue;
+            }
+
+            const older_timestamp = new Date(older['timestamp']);
+            console.log(older_timestamp);
+            if (older_timestamp >= older_window_end && older_timestamp <= older_window_start) {
+                return roundPrecipitation(roundPrecipitation(latest['precipitation']) -
+                    roundPrecipitation(older['precipitation']));
+            }
+        }
+    }
+
+    // no precipitation is occuring :)
+    return 0;
+}
+
 const isLowVisibility = (metar) => {
     if (metar && metar.hasOwnProperty('visib')) {
         let visibKm = milesToKilometers(parseFloat(metar.visib));
@@ -61,14 +90,6 @@ const isStrongWind = (weather) => {
     if (weather && weather['wind_speed']) {
         let windSpeed = roundWindSpeed(metersPerSecondToKilometersPerHour(weather['wind_speed']));
         return windSpeed > 20;
-    }
-    return false;
-}
-
-const isRain = (weather) => {
-    if (weather && weather['precipitation']) {
-        let precipitation = roundPrecipitation(weather['precipitation']);
-        return precipitation > 0;
     }
     return false;
 }
@@ -163,7 +184,7 @@ export default {
             this.requestMetar(),
         ]).then(([weatherArgs, metarArgs]) => {
             console.log('Both weather and metar are available');
-            console.log(weatherArgs);
+            // too much data -- console.log(weatherArgs);
             console.log(metarArgs);
 
             this.updateCondition(weatherArgs, metarArgs);
@@ -217,8 +238,8 @@ export default {
 
                 this.createHistoricalCharts(data);
 
-                // will be used to infer weather description
-                return latest;
+                // data will be used for other things, e.g., infer weather description
+                return data;
             });
     },
 
@@ -547,10 +568,14 @@ export default {
         return windColorScale(value).hex();
     },
 
-    updateCondition: function (weather, metar) {
+    updateCondition: function (weather_list, metar) {
         // -- weather condition --
 
-        const precipitation = isRain(weather) ? roundPrecipitation(weather['precipitation']) : 0;
+        // item are in reversed temporal order, so the first one is the more recent
+        const weather = weather_list[0];
+
+        const precipitation = computePrecipitation(weather_list);
+        console.log('precipitation: ' + precipitation);
 
         let descriptionText = '';
         let descriptionIcon;
