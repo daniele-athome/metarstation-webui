@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => {
         },
         plugins: [
             VitePWA({
+                registerType: 'autoUpdate',
                 manifest: {
                     "name": env.VITE_LOCATION_SHORT_TITLE,
                     "short_name": "Meteo",
