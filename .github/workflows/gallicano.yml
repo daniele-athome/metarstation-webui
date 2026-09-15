@@ -17,6 +17,7 @@ jobs:
         run: |
           cat << EOF >.env.production
           VITE_WEATHER_API_URL=${{ vars.VITE_WEATHER_API_URL }}
+          VITE_WEATHER_INFO_VALIDITY=${{ vars.VITE_WEATHER_INFO_VALIDITY }}
           VITE_LOCATION_TITLE="${{ vars.VITE_LOCATION_TITLE }}"
           VITE_LOCATION_SHORT_TITLE="${{ vars.VITE_LOCATION_SHORT_TITLE }}"
           VITE_LOCATION_LATITUDE=${{ vars.VITE_LOCATION_LATITUDE }}

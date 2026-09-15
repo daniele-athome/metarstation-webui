@@ -266,10 +266,41 @@ footer i {
 }
 
 /* Webcam */
+.webcam-frame {
+    position: relative;
+}
+
 .card-full-img {
     object-fit: cover;
     border-radius: 20px;
     cursor: pointer;
+}
+
+.webcam-stale-panel {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: rgba(255, 196, 61, 0.85);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(146, 96, 0, 0.35);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    color: #3d2a00;
+    font-size: 15px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.webcam-stale-panel i {
+    font-size: 18px;
+    color: #8a5a00;
 }
 
 .fullscreen-overlay {
