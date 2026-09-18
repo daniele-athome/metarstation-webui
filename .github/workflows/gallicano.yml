@@ -26,6 +26,7 @@ jobs:
           VITE_LOCATION_TIMEZONE="${{ vars.VITE_LOCATION_TIMEZONE }}"
           VITE_METAR_STATION_NAME="${{ vars.VITE_METAR_STATION_NAME }}"
           VITE_METAR_STATION_CODE=${{ vars.VITE_METAR_STATION_CODE }}
+          VITE_WEBSITE_URL=${{ vars.VITE_WEBSITE_URL }}
           EOF
 
       - name: Install Node.js
