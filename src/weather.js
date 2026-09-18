@@ -173,6 +173,7 @@ const registerArrowMarker = () => {
 export default {
     weatherUrl: import.meta.env.VITE_WEATHER_API_URL + "/latest?limit=1440",
     metarUrl: import.meta.env.VITE_WEATHER_API_URL + "/metar",
+    validityMinutes: parseInt(import.meta.env.VITE_WEATHER_INFO_VALIDITY),
 
     // TODO element selectors
 
@@ -198,6 +199,14 @@ export default {
                 // item are in reversed temporal order, so the first one is the more recent
                 let latest = data[0];
                 let timestamp = new Date(latest['timestamp']);
+
+                if (!isNaN(this.validityMinutes)) {
+                    const takenAt = new Date(timestamp);
+                    const ageMinutes = (Date.now() - takenAt.getTime()) / 60000;
+                    if (ageMinutes > this.validityMinutes) {
+                        document.querySelector('#today-warning').classList.remove('d-none');
+                    }
+                }
 
                 document.querySelector('#today').innerHTML = timestamp.toLocaleDateString([], {
                         weekday: 'long',
