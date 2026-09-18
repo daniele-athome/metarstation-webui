@@ -175,6 +175,8 @@ export default {
     metarUrl: import.meta.env.VITE_WEATHER_API_URL + "/metar",
     validityMinutes: parseInt(import.meta.env.VITE_WEATHER_INFO_VALIDITY),
 
+    todayTimestamp: document.querySelector('#today'),
+    todayWarning: document.querySelector('#today-warning'),
     // TODO element selectors
 
     initialize: function () {
@@ -204,11 +206,11 @@ export default {
                     const takenAt = new Date(timestamp);
                     const ageMinutes = (Date.now() - takenAt.getTime()) / 60000;
                     if (ageMinutes > this.validityMinutes) {
-                        document.querySelector('#today-warning').classList.remove('d-none');
+                        this.todayWarning.classList.remove('d-none');
                     }
                 }
 
-                document.querySelector('#today').innerHTML = timestamp.toLocaleDateString([], {
+                this.todayTimestamp.innerHTML = timestamp.toLocaleDateString([], {
                         weekday: 'long',
                         month: 'long',
                         day: 'numeric',
