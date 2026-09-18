@@ -593,14 +593,14 @@ export default {
             },
             tooltip: {
                 enabled: true,
-                valueSuffix: ' km/h',
                 shared: true,
-                valueDecimals: 0,
-                formatter: function() {
+                // scatter series default to the series name as the tooltip
+                // header, so restore the standard one used by the other charts
+                headerFormat: '<span style="font-size: 0.8em">{ucfirst point.key}</span><br/>',
+                pointFormatter: function() {
                     let windMinimal = this.y >= minimalWindSpeed;
-                    return '<b>' + Highcharts.dateFormat('%e %b %H:%M', this.x) + '</b><br/>' +
-                        'Velocità: ' + roundWindSpeed(this.y) + ' km/h<br/>' +
-                        'Direzione: ' + (windMinimal ? this.point.direction : '--') + '°';
+                    return 'Velocità: <b>' + roundWindSpeed(this.y) + ' km/h</b><br/>' +
+                        'Direzione: <b>' + (windMinimal ? this.direction + '°' : '--') + '</b><br/>';
                 }
             },
             series: [{
