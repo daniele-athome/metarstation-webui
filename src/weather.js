@@ -145,7 +145,7 @@ const registerArrowMarker = () => {
         const scaleX = w / 640;
         const scaleY = h / 640;
 
-        // Funzione helper per scalare le coordinate
+        // helper to scale coordinates
         const scale = (coords) => coords.map((val, i) =>
             i % 2 === 0 ? x + val * scaleX : y + val * scaleY
         );
