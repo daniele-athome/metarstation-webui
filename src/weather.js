@@ -139,6 +139,63 @@ const cloudCoverageText = {
 // minimal wind speed (in km/h) for the direction to be significant
 const minimalWindSpeed = 4;
 
+const windGradientColor = (value) => {
+    return windColorScale(Math.max(0, value)).hex();
+}
+
+// Point options driven by the wind speed: the shape and the size tell whether
+// the direction is significant, the color encodes the speed itself, while
+// marker.direction is the rotation applied to the arrow on chart render.
+const windPointOptions = (windSpeed, direction) => {
+    const gradient = windGradientColor(windSpeed);
+    const significant = windSpeed >= minimalWindSpeed;
+    return {
+        direction: direction,
+        marker: {
+            fillColor: gradient,
+            lineColor: gradient,
+            direction: oppositeDirection(direction),
+            symbol: significant ? 'arrowUp' : 'circle',
+            radius: significant ? 10 : 4,
+        },
+    };
+}
+
+// Data grouping approximation for the wind series: it keeps the highest speed
+// of the group, like the built-in 'high' approximation, but it also rebuilds
+// the point options. By default Highcharts computes the aggregated y through
+// the approximation and then copies every other option (marker, custom
+// properties) from the *first* sample of the group, so the icon and its color
+// ended up disagreeing with the plotted value. The approximation function is
+// the only place where both are decided at once: writing to
+// this.dataGroupInfo.options replaces that default copy.
+const windApproximation = function(values) {
+    if (!values.length) {
+        // empty group, Highcharts drops it
+        return undefined;
+    }
+
+    const groupedY = Math.max(...values);
+
+    // dataGroupInfo.start is the index of the first sample of the group within
+    // the original data array (in both groupAll modes), and dataGroupInfo.length
+    // is the amount of samples the group aggregates
+    const data = this.options.data;
+    const group = this.dataGroupInfo;
+    const groupEnd = Math.min(group.start + group.length, data.length);
+    let source = data[group.start];
+    for (let i = group.start; i < groupEnd; i++) {
+        if (data[i] && data[i].y === groupedY) {
+            source = data[i];
+            break;
+        }
+    }
+
+    group.options = windPointOptions(groupedY, source ? source.direction : 0);
+
+    return groupedY;
+}
+
 const registerArrowMarker = () => {
     Highcharts.SVGRenderer.prototype.symbols.arrowUp = function(x, y, w, h) {
         // scaling from (viewBox 0 0 640 640)
@@ -301,19 +358,10 @@ export default {
             seriesPressure.push([item['timestamp'], roundPressure(item['pressure'])]);
 
             let windSpeed = roundWindSpeed(metersPerSecondToKilometersPerHour(item['wind_speed']));
-            let windGradient = this.windGradientColor(windSpeed);
-            let windMinimal = windSpeed >= minimalWindSpeed;
             seriesWind.push({
                 x: item['timestamp'],
                 y: windSpeed,
-                direction: item['wind_direction'],
-                marker: {
-                    fillColor: windGradient,
-                    lineColor: windGradient,
-                    direction: oppositeDirection(item['wind_direction']),
-                    symbol: windMinimal ? 'arrowUp' : 'circle',
-                    radius: windMinimal ? 10 : 4,
-                },
+                ...windPointOptions(windSpeed, item['wind_direction']),
             });
         }
         seriesTemperature.sort((a, b) => a[0].localeCompare(b[0]));
@@ -549,7 +597,6 @@ export default {
                 shared: true,
                 valueDecimals: 0,
                 formatter: function() {
-                    // TODO data grouping support
                     let windMinimal = this.y >= minimalWindSpeed;
                     return '<b>' + Highcharts.dateFormat('%e %b %H:%M', this.x) + '</b><br/>' +
                         'Velocità: ' + roundWindSpeed(this.y) + ' km/h<br/>' +
@@ -567,16 +614,11 @@ export default {
                     enabled: true,
                     groupAll: true,
                     groupPixelWidth: 15,
-                    approximation: 'high',
+                    approximation: windApproximation,
                 },
                 data: seriesWind,
             }],
         });
-    },
-
-    windGradientColor: function(value) {
-        value = Math.max(0, value);
-        return windColorScale(value).hex();
     },
 
     updateCondition: function (weather_list, metar) {
