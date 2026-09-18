@@ -1,5 +1,5 @@
 {
-  "name": "weather-test-webui",
+  "name": "metarstation-webui",
   "version": "0.0.1",
   "scripts": {
     "start": "vite",
