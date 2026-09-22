@@ -253,14 +253,12 @@ export default {
     },
 
     requestWeather: function () {
-        return Promise.reject(new Error("Not implemented"))
-        //return fetch(this.weatherUrl)
+        return fetch(this.weatherUrl)
             .catch(e => {
                 console.error(e);
                 // TODO show a proper error message
                 this.showDataError();
             })
-            .then(x => new Promise(resolve => setTimeout(() => resolve(x), 2000)))
             .then(response => {
                 return response ? response.json() : null;
             })
