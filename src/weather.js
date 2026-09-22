@@ -245,10 +245,12 @@ export default {
             // too much data -- console.log(weatherData);
             console.log(metarData);
 
+            const validMetarData = this.isValidMetar(metarData, weatherData) ? metarData : null;
+
             // update the bare minimum from METAR even if we don't have weather data
-            this.updateWithMetarData(metarData);
+            this.updateWithMetarData(validMetarData);
             // update weather conditions (weather situation with a brief text)
-            this.updateCondition(weatherData, metarData);
+            this.updateCondition(weatherData, validMetarData);
         });
     },
 
@@ -767,6 +769,23 @@ export default {
 
     noConditionAvailable: function() {
         document.querySelector('#condition-icon').classList.add('d-none');
+    },
+
+    /**
+     * Returns true if the given METAR data is valid for use.
+     */
+    isValidMetar: function(metar, weather_list) {
+        // very basic validation
+        if (!metar || !weather_list || weather_list.length < 1) {
+            return false;
+        }
+
+        let metar_ts = new Date(metar['receiptTime']);
+        let weather_ts = new Date(weather_list[0]['timestamp']);
+
+        // we can use the METAR if is no more than 1 hour of difference from our latest weather data
+        const diffMinutes = Math.abs(weather_ts.getTime() - metar_ts.getTime()) / 60000;
+        return (diffMinutes < 60);
     },
 
     roundTemperature,
