@@ -53,7 +53,6 @@ const computePrecipitation = (weather_list) => {
     if (weather_list.length >= 2) {
         const latest = weather_list[0];
         const latest_timestamp = new Date(latest['timestamp']);
-        console.log(latest_timestamp);
 
         // we want something between 1h and 1h15m ago
         const older_window_start = latest_timestamp - 60 * 60 * 1000;
@@ -66,7 +65,6 @@ const computePrecipitation = (weather_list) => {
             }
 
             const older_timestamp = new Date(older['timestamp']);
-            console.log(older_timestamp);
             if (older_timestamp >= older_window_end && older_timestamp <= older_window_start) {
                 return roundPrecipitation(roundPrecipitation(latest['precipitation']) -
                     roundPrecipitation(older['precipitation']));
