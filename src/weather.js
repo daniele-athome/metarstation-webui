@@ -240,19 +240,35 @@ export default {
         Promise.all([
             this.requestWeather(),
             this.requestMetar(),
-        ]).then(([weatherArgs, metarArgs]) => {
+        ]).then(([weatherData, metarData]) => {
             console.log('Both weather and metar are available');
-            // too much data -- console.log(weatherArgs);
-            console.log(metarArgs);
+            // too much data -- console.log(weatherData);
+            console.log(metarData);
 
-            this.updateCondition(weatherArgs, metarArgs);
+            // update the bare minimum from METAR even if we don't have weather data
+            this.updateWithMetarData(metarData);
+            // update weather conditions (weather situation with a brief text)
+            this.updateCondition(weatherData, metarData);
         });
     },
 
     requestWeather: function () {
-        return fetch(this.weatherUrl)
-            .then(response => response.json())
+        return Promise.reject(new Error("Not implemented"))
+        //return fetch(this.weatherUrl)
+            .catch(e => {
+                console.error(e);
+                // TODO show a proper error message
+                this.showDataError();
+            })
+            .then(x => new Promise(resolve => setTimeout(() => resolve(x), 2000)))
+            .then(response => {
+                return response ? response.json() : null;
+            })
             .then(data => {
+                if (!data) {
+                    return null;
+                }
+
                 // item are in reversed temporal order, so the first one is the more recent
                 let latest = data[0];
                 let timestamp = new Date(latest['timestamp']);
@@ -261,7 +277,7 @@ export default {
                     const takenAt = new Date(timestamp);
                     const ageMinutes = (Date.now() - takenAt.getTime()) / 60000;
                     if (ageMinutes > this.validityMinutes) {
-                        this.todayWarning.classList.remove('d-none');
+                        this.showDataError();
                     }
                 }
 
@@ -302,45 +318,51 @@ export default {
                 };
                 document.querySelector('#feels-like').innerHTML = roundTemperature(new Feels(config).like()).toString();
 
-                this.createHistoricalCharts(data);
-
-                // data will be used for other things, e.g., infer weather description
+                return data;
+            })
+            .then(data => {
+                // this will ensure the empty chart objects are created even if no data is present
+                this.createHistoricalCharts(data ?? []);
                 return data;
             });
     },
 
     requestMetar: function () {
         return fetch(this.metarUrl)
+            .catch(e => console.error(e))
             .then(response => {
-                if (response.status === 204) {
+                if (!response || response.status === 204) {
                     return null;
                 }
                 else {
                     return response.json();
                 }
-            })
-            .then(data => {
-                if (data === undefined || data === null) {
-                    document.querySelector('#condition-icon').classList.add('d-none');
-                }
-                else if (data.hasOwnProperty('cover')) {
-                    const cloudCoverage = cloudCover[data.cover];
-                    if (cloudCoverage !== undefined) {
-                        document.querySelector('#clouds').innerHTML = cloudCoverage.toString();
-                    }
-
-                    if (data.cover === 'CAVOK') {
-                        // special condition that includes visibility of 10+ km
-                        document.querySelector('#visibility').innerHTML = '10';
-                    }
-                    else if (data.hasOwnProperty('visib')) {
-                        let visibKm = milesToKilometers(parseFloat(data.visib));
-                        document.querySelector('#visibility').innerHTML =
-                            visibKm < 1 ? '< 1' : Math.round(visibKm);
-                    }
-                }
-                return data;
             });
+    },
+
+    /**
+     * Updates some information in the page with the given METAR data.
+     */
+    updateWithMetarData: function(data) {
+        if (data === undefined || data === null) {
+            this.noConditionAvailable();
+        }
+        else if (data.hasOwnProperty('cover')) {
+            const cloudCoverage = cloudCover[data.cover];
+            if (cloudCoverage !== undefined) {
+                document.querySelector('#clouds').innerHTML = cloudCoverage.toString();
+            }
+
+            if (data.cover === 'CAVOK') {
+                // special condition that includes visibility of 10+ km
+                document.querySelector('#visibility').innerHTML = '10';
+            }
+            else if (data.hasOwnProperty('visib')) {
+                let visibKm = milesToKilometers(parseFloat(data.visib));
+                document.querySelector('#visibility').innerHTML =
+                    visibKm < 1 ? '< 1' : Math.round(visibKm);
+            }
+        }
     },
 
     createHistoricalCharts: function(data) {
@@ -350,17 +372,22 @@ export default {
         let seriesPressure = [];
         let seriesWind = [];
         for (let item of data) {
-            seriesTemperature.push([item['timestamp'], roundTemperature(item['temperature'])]);
-            seriesDewpoint.push([item['timestamp'], roundTemperature(item['dew_point'])]);
-            seriesHumidity.push([item['timestamp'], roundHumidity(item['humidity'])]);
-            seriesPressure.push([item['timestamp'], roundPressure(item['pressure'])]);
+            try {
+                seriesTemperature.push([item['timestamp'], roundTemperature(item['temperature'])]);
+                seriesDewpoint.push([item['timestamp'], roundTemperature(item['dew_point'])]);
+                seriesHumidity.push([item['timestamp'], roundHumidity(item['humidity'])]);
+                seriesPressure.push([item['timestamp'], roundPressure(item['pressure'])]);
 
-            let windSpeed = roundWindSpeed(metersPerSecondToKilometersPerHour(item['wind_speed']));
-            seriesWind.push({
-                x: item['timestamp'],
-                y: windSpeed,
-                ...windPointOptions(windSpeed, item['wind_direction']),
-            });
+                let windSpeed = roundWindSpeed(metersPerSecondToKilometersPerHour(item['wind_speed']));
+                seriesWind.push({
+                    x: item['timestamp'],
+                    y: windSpeed,
+                    ...windPointOptions(windSpeed, item['wind_direction']),
+                });
+            }
+            catch {
+                console.error("Skipping invalid data: ", item);
+            }
         }
         seriesTemperature.sort((a, b) => a[0].localeCompare(b[0]));
         seriesDewpoint.sort((a, b) => a[0].localeCompare(b[0]));
@@ -620,6 +647,12 @@ export default {
     },
 
     updateCondition: function (weather_list, metar) {
+        if (!weather_list) {
+            // no data available, just hide the condition loading spinner
+            this.noConditionAvailable();
+            return;
+        }
+
         // -- weather condition --
 
         // item are in reversed temporal order, so the first one is the more recent
@@ -695,7 +728,7 @@ export default {
             document.querySelector('#condition-icon').title = descriptionText;
         }
         else {
-            document.querySelector('#condition-icon').classList.add('d-none');
+            this.noConditionAvailable();
         }
 
         // -- flight condition --
@@ -725,6 +758,17 @@ export default {
             document.querySelector('#condition-msg').innerHTML =
                 `<i class="${conditionIcon}"></i> ${conditionText}`;
         }
+    },
+
+    showDataError: function(message = null) {
+        this.todayWarning.classList.remove('d-none');
+        if (message) {
+            // TODO display it somewhere
+        }
+    },
+
+    noConditionAvailable: function() {
+        document.querySelector('#condition-icon').classList.add('d-none');
     },
 
     roundTemperature,
