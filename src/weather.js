@@ -340,31 +340,6 @@ export default {
             });
     },
 
-    /**
-     * Updates some information in the page with the given METAR data.
-     */
-    updateWithMetarData: function(data) {
-        if (data === undefined || data === null) {
-            this.noConditionAvailable();
-        }
-        else if (data.hasOwnProperty('cover')) {
-            const cloudCoverage = cloudCover[data.cover];
-            if (cloudCoverage !== undefined) {
-                document.querySelector('#clouds').innerHTML = cloudCoverage.toString();
-            }
-
-            if (data.cover === 'CAVOK') {
-                // special condition that includes visibility of 10+ km
-                document.querySelector('#visibility').innerHTML = '10';
-            }
-            else if (data.hasOwnProperty('visib')) {
-                let visibKm = milesToKilometers(parseFloat(data.visib));
-                document.querySelector('#visibility').innerHTML =
-                    visibKm < 1 ? '< 1' : Math.round(visibKm);
-            }
-        }
-    },
-
     createHistoricalCharts: function(data) {
         let seriesTemperature = [];
         let seriesDewpoint = [];
@@ -646,9 +621,34 @@ export default {
         });
     },
 
+    /**
+     * Updates some information in the page with the given METAR data.
+     */
+    updateWithMetarData: function(data) {
+        if (data === undefined || data === null) {
+            this.noConditionAvailable();
+        }
+        else if (data.hasOwnProperty('cover')) {
+            const cloudCoverage = cloudCover[data.cover];
+            if (cloudCoverage !== undefined) {
+                document.querySelector('#clouds').innerHTML = cloudCoverage.toString();
+            }
+
+            if (data.cover === 'CAVOK') {
+                // special condition that includes visibility of 10+ km
+                document.querySelector('#visibility').innerHTML = '10';
+            }
+            else if (data.hasOwnProperty('visib')) {
+                let visibKm = milesToKilometers(parseFloat(data.visib));
+                document.querySelector('#visibility').innerHTML =
+                    visibKm < 1 ? '< 1' : Math.round(visibKm);
+            }
+        }
+    },
+
     updateCondition: function (weather_list, metar) {
         if (!weather_list) {
-            // no data available, just hide the condition loading spinner
+            // no data available, just hide the condition
             this.noConditionAvailable();
             return;
         }
