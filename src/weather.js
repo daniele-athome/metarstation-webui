@@ -674,7 +674,27 @@ export default {
         let descriptionText = '';
         let descriptionIcon;
 
-        if (isPossibleFog(weather)) {
+        if (precipitation > 0) {
+            // almost totally random precipitation intensity values :)
+
+            if (precipitation < 0.5) {
+                descriptionText = 'Pioggia debole';
+                descriptionIcon = 'drizzle';
+            }
+            else if (precipitation >= 0.5 && precipitation <= 4) {
+                descriptionText = 'Pioggia moderata';
+                descriptionIcon = 'rain';
+            }
+            else if (precipitation > 4 && precipitation <= 10) {
+                descriptionText = 'Pioggia forte';
+                descriptionIcon = 'overcast-rain';
+            }
+            else if (precipitation > 10) {
+                descriptionText = 'Rovescio';
+                descriptionIcon = 'extreme-rain';
+            }
+        }
+        else if (isPossibleFog(weather)) {
             // possible fog
             let fog = false;
             if (metar && metar.hasOwnProperty('visib')) {
@@ -696,26 +716,6 @@ export default {
             }
 
             descriptionIcon = fogIcon;
-        }
-        else if (precipitation > 0) {
-            // almost totally random precipitation intensity values :)
-
-            if (precipitation < 0.5) {
-                descriptionText = 'Pioggia debole';
-                descriptionIcon = 'drizzle';
-            }
-            else if (precipitation >= 0.5 && precipitation <= 4) {
-                descriptionText = 'Pioggia moderata';
-                descriptionIcon = 'rain';
-            }
-            else if (precipitation > 4 && precipitation <= 10) {
-                descriptionText = 'Pioggia forte';
-                descriptionIcon = 'overcast-rain';
-            }
-            else if (precipitation > 10) {
-                descriptionText = 'Rovescio';
-                descriptionIcon = 'extreme-rain';
-            }
         }
         else {
             // no fog and no rain, use cloud cover from METAR if available
