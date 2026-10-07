@@ -746,17 +746,17 @@ export default {
         let conditionText;
         let conditionIcon;
 
-        if (isLowVisibility(metar) || isPossibleFog(weather)) {
+        if (precipitation > 0) {
+            conditionText = `Pioggia (${precipitation} mm/h)`;
+            conditionIcon = 'fa-solid fa-cloud-rain';
+        }
+        else if (isLowVisibility(metar) || isPossibleFog(weather)) {
             conditionText = 'Scarsa visibilità';
             conditionIcon = 'fa-solid fa-eye-low-vision';
         }
         else if (isStrongWind(weather)) {
             conditionText = 'Vento forte';
             conditionIcon = 'fa-solid fa-wind';
-        }
-        else if (precipitation > 0) {
-            conditionText = `Pioggia (${precipitation} mm/h)`;
-            conditionIcon = 'fa-solid fa-cloud-rain';
         }
         else {
             conditionText = 'Buone condizioni';
