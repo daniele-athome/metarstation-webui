@@ -25,6 +25,10 @@ const metersPerSecondToKilometersPerHour = (mps) => {
     return mps * 3.6;
 }
 
+const pressureToQnh = (pressure, elevation) => {
+    return Math.floor(pressure * (1 - (0.0065 * elevation) / 288.15) ** -5.25588);
+}
+
 const oppositeDirection = (direction) => {
     return direction > 180 ? direction - 180 : direction + 180;
 }
@@ -229,6 +233,7 @@ export default {
     weatherUrl: import.meta.env.VITE_WEATHER_API_URL + "/latest?limit=1440",
     metarUrl: import.meta.env.VITE_WEATHER_API_URL + "/metar",
     validityMinutes: parseInt(import.meta.env.VITE_WEATHER_INFO_VALIDITY),
+    elevation: import.meta.env.VITE_LOCATION_HEIGHT,
 
     todayTimestamp: document.querySelector('#today'),
     todayWarning: document.querySelector('#today-warning'),
@@ -297,6 +302,8 @@ export default {
                 document.querySelector('#humidity').innerHTML = roundHumidity(latest['humidity']).toString();
                 document.querySelector('#dew-point').innerHTML = roundTemperature(latest['dew_point']).toString();
                 document.querySelector('#pressure').innerHTML = roundPressure(latest['pressure']).toString();
+                document.querySelector('#qnh').innerHTML = pressureToQnh(roundPressure(latest['pressure']),
+                    this.elevation).toString();
 
                 let windSpeed = roundWindSpeed(metersPerSecondToKilometersPerHour(latest['wind_speed']));
                 document.querySelector('#wind-speed').innerHTML = windSpeed.toString();
