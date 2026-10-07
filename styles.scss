@@ -358,8 +358,15 @@ footer i {
 
 /* Additional DARK STYLES */
 .dark .card:not(.initial),
+.dark .current-weather .card-body:not(.initial),
 .list-group-item {
     background-color: var(--main-bg);
+    color: var(--main-text);
+    text-shadow: var(--text-shadow);
+}
+
+.dark .current-weather.card:not(.initial) {
+    background-color: rgba(255 255 255 / 0.2);
     color: var(--main-text);
     text-shadow: var(--text-shadow);
 }
@@ -372,6 +379,19 @@ footer i {
 .dark .list-group-item {
     color: rgb(246, 255, 250);
     text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.35);
+}
+
+.dark .current-weather .temp-details li {
+    // same as card-body background
+    background-color: var(--main-bg);
+}
+
+.dark .current-weather .temp-details.list-group {
+    --bs-list-group-border-color: var(--bs-border-color);
+}
+
+.dark .current-weather ul.temp-details.list-group {
+    border-top-color: var(--bs-list-group-border-color);
 }
 
 // TODO vertical padding is actually margin created by "my-N" classes
