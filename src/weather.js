@@ -307,6 +307,9 @@ export default {
                     document.querySelector('#wind-direction-container').classList.add('d-none');
                 }
 
+                let gustSpeed = roundWindSpeed(metersPerSecondToKilometersPerHour(latest['gust_speed']));
+                document.querySelector('#gust-speed').innerHTML = gustSpeed.toString();
+
                 const config = {
                     temp: latest['temperature'],
                     humidity: latest['humidity'],

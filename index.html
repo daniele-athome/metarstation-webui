@@ -85,7 +85,7 @@
             <div class="container flex-md-row flex-column my-4">
                 <div class="row">
                     <section class="temp-overview col-lg-5">
-                        <div class="current-weather card">
+                        <div class="current-weather card p-1">
                             <div class="card-body">
                                 <div class="d-flex">
                                     <h1 class="flex-grow-1">
@@ -109,7 +109,6 @@
                                         >°<span class="celsius">C</span>
                                     </h3-->
                                 </div>
-                                <br><br>
                                 <div class="d-flex">
                                     <div class="flex-grow-1">
                                         <p>
@@ -135,12 +134,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </section>
-                    <div class="w-100 d-lg-none d-block"></div>
-                    <section class="temp-details col-lg-4 col-md-5 mt-3 mt-md-2 mt-lg-0">
-                        <div class="card p-1 initial">
-                            <ul class="list-group list-group-flush">
+                            <ul class="list-group list-group-flush temp-details">
                                 <li class="list-group-item d-flex">
                                     <strong class="flex-grow-1">Visibilità
                                         <i class="fa-solid fa-circle-info align-self-center" data-bs-toggle="tooltip"
@@ -148,6 +142,42 @@
                                     </strong>
                                     <span id="visibility">--</span>&nbsp;km
                                     <i class="fa-solid fa-eye-slash align-self-center emblem"></i>
+                                </li>
+                                <li class="list-group-item d-flex">
+                                    <strong class="flex-grow-1">Copertura
+                                        <i class="fa-solid fa-circle-info align-self-center" data-bs-toggle="tooltip"
+                                           title="Dal METAR di %VITE_METAR_STATION_NAME% (%VITE_METAR_STATION_CODE%)"></i>
+                                    </strong>
+                                    <span id="clouds">--</span>%
+                                    <i class="fa-solid fa-cloud align-self-center emblem"></i>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                    <div class="w-100 d-lg-none d-block"></div>
+                    <section class="temp-details col-lg-4 col-md-5 mt-3 mt-md-2 mt-lg-0">
+                        <div class="card p-1 initial">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex">
+                                    <strong class="flex-grow-1">Vento </strong>
+                                    <span id="wind-speed">--</span>&nbsp;<span id="wind-unit">km/h</span>
+                                    <span id="wind-direction-container">
+                                        <i class="fa-solid fa-location-arrow align-self-center mx-1"></i>
+                                        <span id="wind-direction">--</span>°
+                                    </span>
+                                    <i class="fa-solid fa-wind align-self-center emblem"></i>
+                                </li>
+
+                                <li class="list-group-item d-flex">
+                                    <strong class="flex-grow-1">Raffiche </strong>
+                                    <span id="gust-speed">--</span>&nbsp;<span id="gust-unit">km/h</span>
+                                    <i class="fa-solid fa-tornado align-self-center emblem"></i>
+                                </li>
+
+                                <li class="list-group-item d-flex">
+                                    <strong class="flex-grow-1">Umidità</strong>
+                                    <span id="humidity">--</span>%
+                                    <i class="fa-solid fa-water align-self-center emblem"></i>
                                 </li>
 
                                 <li class="list-group-item d-flex">
@@ -160,35 +190,10 @@
                                 </li>
 
                                 <li class="list-group-item d-flex">
-                                    <strong class="flex-grow-1">Vento </strong>
-                                    <span id="wind-speed">--</span>&nbsp;<span id="wind-unit">km/h</span>
-                                    <span id="wind-direction-container">
-                                        <i class="fa-solid fa-location-arrow align-self-center mx-1"></i>
-                                        <span id="wind-direction">--</span>°
-                                    </span>
-                                    <i class="fa-solid fa-wind align-self-center emblem"></i>
-                                </li>
-
-                                <li class="list-group-item d-flex">
-                                    <strong class="flex-grow-1">Umidità</strong>
-                                    <span id="humidity">--</span>%
-                                    <i class="fa-solid fa-water align-self-center emblem"></i>
-                                </li>
-
-                                <li class="list-group-item d-flex">
                                     <strong class="flex-grow-1">Pressione</strong>
                                     <span id="pressure">--</span>&nbsp;
                                     <span id="pressure-unit">mbar</span>
                                     <i class="fa-solid fa-gauge-high align-self-center emblem"></i>
-                                </li>
-
-                                <li class="list-group-item d-flex">
-                                    <strong class="flex-grow-1">Copertura
-                                        <i class="fa-solid fa-circle-info align-self-center" data-bs-toggle="tooltip"
-                                           title="Dal METAR di %VITE_METAR_STATION_NAME% (%VITE_METAR_STATION_CODE%)"></i>
-                                    </strong>
-                                    <span id="clouds">--</span>%
-                                    <i class="fa-solid fa-cloud align-self-center emblem"></i>
                                 </li>
                             </ul>
                         </div>

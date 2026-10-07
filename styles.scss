@@ -212,12 +212,32 @@ footer i {
 }
 
 .current-weather {
-    background: #bfedfb;
     border-radius: 10px;
 }
 
 .current-weather h1 {
     font-size: 40px;
+}
+
+.current-weather.card {
+    background: rgba(191, 237, 251, 0.4);
+}
+
+.current-weather .card-body {
+    --bs-card-spacer-x: 0.5rem;
+    --bs-card-spacer-y: 0.25rem;
+    background: #bfedfb;
+    border-top-left-radius: var(--bs-card-border-radius);
+    border-top-right-radius: var(--bs-card-border-radius);
+}
+
+.current-weather .temp-details.list-group {
+    --bs-list-group-border-color: rgb(0 0 0 / .08);
+}
+
+.current-weather .temp-details li {
+    // same as card-body background
+    background: #bfedfb;
 }
 
 .temperature-icon {
@@ -228,7 +248,7 @@ footer i {
 }
 
 .card {
-    min-height: 230px;
+    //min-height: 230px;
     margin-top: 10px;
 }
 
