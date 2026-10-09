@@ -1,6 +1,7 @@
 'use strict'
 
 import sunTimesManager from "./suntimes.js";
+import * as science from "./science.js";
 
 import Feels from 'feels';
 import chroma from 'chroma-js';
@@ -104,10 +105,21 @@ const isStrongWind = (weather) => {
 }
 
 const isPossibleFog = (weather) => {
-    const temperature = roundTemperature(weather['temperature']);
-    const dewpoint = roundTemperature(weather['dew_point']);
-    const humidity = roundHumidity(weather['humidity']);
-    return Math.abs(temperature - dewpoint) < 2 && humidity > 90;
+    const temperature = weather['temperature'];
+    const dewpoint = weather['dew_point'];
+
+    const fogProbability = science.fogProbability(
+        {
+            t: temperature,
+            td: dewpoint,
+            windMs: weather['wind_speed'],
+            dp3h: 0, // TODO 3-hour pressure tendency,
+            isNight: false, // TODO is it night?
+            humidSector: false, // TODO what's this??
+        }
+    );
+
+    return fogProbability >= 0.9;
 }
 
 const windColorScale = chroma.scale([
