@@ -33,6 +33,13 @@ const oppositeDirection = (direction) => {
     return direction > 180 ? direction - 180 : direction + 180;
 }
 
+// The Font Awesome location-arrow glyph already points to the north-east, so we
+// take out those 45 degrees to end up with the same rotation used by the arrows
+// in the wind chart (which point where the wind is blowing to).
+const arrowIconRotation = (direction) => {
+    return oppositeDirection(direction) - 45;
+}
+
 const roundTemperature = (temperature) => {
     return parseFloat(temperature.toFixed(1));
 }
@@ -309,6 +316,10 @@ export default {
                 document.querySelector('#wind-speed').innerHTML = windSpeed.toString();
                 if (windSpeed >= minimalWindSpeed) {
                     document.querySelector('#wind-direction').innerHTML = latest['wind_direction'];
+
+                    const windDirectionArrow = document.querySelector('#wind-direction-arrow');
+                    windDirectionArrow.style.color = windGradientColor(windSpeed);
+                    windDirectionArrow.style.transform = `rotate(${arrowIconRotation(latest['wind_direction'])}deg)`;
                 }
                 else {
                     document.querySelector('#wind-direction-container').classList.add('d-none');
