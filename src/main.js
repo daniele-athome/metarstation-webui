@@ -20,6 +20,7 @@ const themeManager = {
     toggleTheme: function () {
         this.body.classList.toggle('dark');
         this.body.classList.toggle('highcharts-dark');
+        this.body.classList.toggle('highcharts-light');
         localStorage.setItem('theme', this.body.classList.contains('dark') ? 'dark' : 'light');
     },
 
