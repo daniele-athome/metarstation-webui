@@ -63,6 +63,7 @@ body {
     --icon-btn-color: #0a95c0;
     --btn-bg: #f0f7f8;
     --btn-border: 1px solid #0a95c0;
+    --arrow-outline: rgba(0, 20, 40, 0.55);
 }
 
 .dark {
@@ -77,6 +78,8 @@ body {
     --icon-btn-color: #f6f7fa;
     --btn-bg: #2e3540;
     --btn-border: 1px solid #545555;
+    // the wind colors already stand out on the dark background
+    --arrow-outline: transparent;
 }
 
 body {
@@ -284,6 +287,9 @@ footer i {
 
 #wind-direction-arrow {
     font-size: 1rem;
+    // an outline to stand out on light theme
+    paint-order: stroke fill;
+    -webkit-text-stroke: 1.5px var(--arrow-outline);
 }
 
 #description-temp {
