@@ -119,7 +119,8 @@ const isPossibleFog = (weather) => {
         }
     );
 
-    return fogProbability >= 0.9;
+    console.log(`fog: ${fogProbability}`);
+    return fogProbability >= 0.8;
 }
 
 const windColorScale = chroma.scale([
