@@ -25,7 +25,9 @@
     </style>
     <script type="text/javascript">
         const userTheme = localStorage.getItem('theme');
-        if (userTheme === 'dark') {
+        const darkTheme = userTheme === 'dark' || (userTheme !== 'light' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (darkTheme) {
             // color is from var(--main-bg) in styles.scss
             document.querySelector('html').style.backgroundColor = '#242230';
         }
