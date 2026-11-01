@@ -415,8 +415,14 @@ footer i {
 }
 
 // TODO vertical padding is actually margin created by "my-N" classes
-@media only screen and (max-width: 576px) {
+@media only screen and (max-width: map-get($grid-breakpoints, 'sm')) {
     .row > section {
         --bs-gutter-x: 0;
+    }
+}
+
+@media only screen and (max-width: map-get($grid-breakpoints, 'md')) {
+    header h3 {
+        min-height: 2lh;
     }
 }
