@@ -300,6 +300,16 @@ footer i {
     position: relative;
 }
 
+.local-webcam img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+}
+
+#local-webcam-loading img {
+    scale: 0.3;
+}
+
 .card-full-img {
     object-fit: cover;
     border-radius: 20px;
