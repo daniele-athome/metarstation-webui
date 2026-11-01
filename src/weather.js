@@ -412,7 +412,6 @@ export default {
         const chartOptions = {
             chart: {
                 type: 'spline',
-                height: 250,
                 zooming: {
                     type: 'x'
                 },
@@ -584,7 +583,6 @@ export default {
             ...chartOptions,
             chart: {
                 type: 'scatter',
-                height: 250,
                 zooming: {
                     type: 'x'
                 },
