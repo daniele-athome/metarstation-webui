@@ -11,7 +11,7 @@
     "bootstrap": "^5.3.8",
     "chroma-js": "^3.2.0",
     "feels": "^3.0.0",
-    "highcharts": "^12.5.0",
+    "highcharts": "^12.6.2",
     "suncalc": "^1.9.0"
   },
   "type": "module",
