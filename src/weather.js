@@ -88,6 +88,19 @@ const computePrecipitation = (weather_list) => {
     return 0;
 }
 
+/**
+ * Computes precipitation deltas for any two samples (because precipitation is a cumulative number).
+ * @param totals the original sensor readings, in ascending time order
+ */
+const precipitationDeltas = (totals) => {
+    const deltas = [];
+    for (let i = 1; i < totals.length; i++) {
+        const delta = roundPrecipitation(totals[i][1] - totals[i - 1][1]);
+        deltas.push([totals[i][0], delta > 0 ? delta : 0]);
+    }
+    return deltas;
+}
+
 const isLowVisibility = (metar) => {
     if (metar && metar.hasOwnProperty('visib')) {
         let visibKm = milesToKilometers(parseFloat(metar.visib));
@@ -380,8 +393,10 @@ export default {
         let seriesHumidity = [];
         let seriesPressure = [];
         let seriesWind = [];
+        let precipitationTotals = [];
         for (let item of data) {
             try {
+                // TODO proper data checks (e.g. key in item)
                 seriesTemperature.push([item['timestamp'], roundTemperature(item['temperature'])]);
                 seriesDewpoint.push([item['timestamp'], roundTemperature(item['dew_point'])]);
                 seriesHumidity.push([item['timestamp'], roundHumidity(item['humidity'])]);
@@ -393,6 +408,10 @@ export default {
                     y: windSpeed,
                     ...windPointOptions(windSpeed, item['wind_direction']),
                 });
+
+                if (typeof item['precipitation'] === 'number') {
+                    precipitationTotals.push([item['timestamp'], roundPrecipitation(item['precipitation'])]);
+                }
             }
             catch {
                 console.error("Skipping invalid data: ", item);
@@ -403,6 +422,8 @@ export default {
         seriesHumidity.sort((a, b) => a[0].localeCompare(b[0]));
         seriesPressure.sort((a, b) => a[0].localeCompare(b[0]));
         seriesWind.sort((a, b) => a.x.localeCompare(b.x));
+        precipitationTotals.sort((a, b) => a[0].localeCompare(b[0]));
+        const seriesPrecipitation = precipitationDeltas(precipitationTotals);
         // console.log(seriesTemperature);
         // console.log(seriesDewpoint);
         // console.log(seriesHumidity);
@@ -484,6 +505,7 @@ export default {
         this.createHumidityChart(chartOptions, seriesHumidity);
         this.createPressureChart(chartOptions, seriesPressure);
         this.createWindChart(chartOptions, seriesWind);
+        this.createPrecipitationChart(chartOptions, seriesPrecipitation);
     },
 
     createTemperatureChart: function(chartOptions, seriesTemperature, seriesDewpoint) {
@@ -649,6 +671,61 @@ export default {
                     approximation: windApproximation,
                 },
                 data: seriesWind,
+            }],
+        });
+    },
+
+    createPrecipitationChart: function(chartOptions, seriesPrecipitation) {
+        Highcharts.chart('chart-precipitation', {
+            ...chartOptions,
+            chart: {
+                ...chartOptions.chart,
+                type: 'column',
+            },
+            title: {
+                text: 'Pioggia (mm)',
+            },
+            yAxis: {
+                gridLineWidth: 1,
+                showEmpty: true,
+                min: 0,
+                softMax: 1,
+                minPadding: 0,
+                maxPadding: 0,
+                title: false,
+            },
+            plotOptions: {
+                ...chartOptions.plotOptions,
+                series: {
+                    ...chartOptions.plotOptions.series,
+                    dataGrouping: {
+                        enabled: true,
+                        approximation: 'sum',
+                        groupPixelWidth: 24,
+                        units: [
+                            ['minute', [10, 30]],
+                            ['hour', [1, 3, 6]],
+                            ['day', [1]],
+                        ],
+                    },
+                },
+                column: {
+                    borderWidth: 0,
+                    borderRadius: 2,
+                    groupPadding: 0,
+                    pointPadding: 0.05,
+                    crisp: false,
+                },
+            },
+            tooltip: {
+                enabled: true,
+                valueSuffix: ' mm',
+                shared: true,
+                valueDecimals: 1,
+            },
+            series: [{
+                name: 'Pioggia',
+                data: seriesPrecipitation,
             }],
         });
     },
