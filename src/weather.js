@@ -838,6 +838,8 @@ export default {
         if (descriptionIcon) {
             document.querySelector('#condition-icon').src = getWeatherIcon(descriptionIcon);
             document.querySelector('#condition-icon').title = descriptionText;
+            // FIXME workaround to show the condition icon again, but we should fix the actual workflow instead
+            document.querySelector('#condition-icon').classList.remove('d-none');
         }
         else {
             this.noConditionAvailable();
