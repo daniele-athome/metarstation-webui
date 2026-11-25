@@ -67,25 +67,28 @@ const computePrecipitation = (weather_list) => {
         const latest_timestamp = new Date(latest['timestamp']);
 
         // we want something between 1h and 1h15m ago
-        const older_window_start = latest_timestamp - 60 * 60 * 1000;
-        const older_window_end = latest_timestamp - 75 * 60 * 1000;
+        const older_window_start = latest_timestamp - 75 * 60 * 1000;
+        const older_window_end = latest_timestamp - 60 * 60 * 1000;
 
         for (let older of weather_list.slice(1)) {
-            if (!older['precipitation']) {
+            if (typeof older['precipitation'] !== 'number') {
                 // bad item
                 continue;
             }
 
             const older_timestamp = new Date(older['timestamp']);
-            if (older_timestamp >= older_window_end && older_timestamp <= older_window_start) {
-                return roundPrecipitation(roundPrecipitation(latest['precipitation']) -
-                    roundPrecipitation(older['precipitation']));
+            if (older_timestamp >= older_window_start && older_timestamp <= older_window_end) {
+                // the window is 15 minutes wide, so the amount of rain fallen in it
+                // has to be normalized to get an actual hourly rate
+                const elapsed_hours = (latest_timestamp - older_timestamp) / (60 * 60 * 1000);
+                return roundPrecipitation(
+                    (latest['precipitation'] - older['precipitation']) / elapsed_hours);
             }
         }
     }
 
-    // no precipitation is occuring :)
-    return 0;
+    // no usable reference sample - return an undefined value
+    return null;
 }
 
 /**
